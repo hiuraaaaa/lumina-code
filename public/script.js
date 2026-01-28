@@ -23,13 +23,13 @@ async function loadSnippets() {
 
             container.innerHTML = data.map(snippet => `
                 <div class="snippet-card" data-date="${new Date(snippet.created_at).getTime()}">
-                    <div class="tag">${snippet.tags || 'GENERAL'}</div>
+                    <div class="tag">${(snippet.tags || 'GENERAL').toUpperCase()}</div>
                     <h3>${snippet.title}</h3>
                     <pre><code>${escapeHtml(snippet.code.substring(0, 150))}${snippet.code.length > 150 ? '...' : ''}</code></pre>
                     <div class="snippet-meta">
                         <span class="date">${formatDate(snippet.created_at)}</span>
                         <div class="meta-actions">
-                            <button onclick="quickCopy(\`${escapeHtml(snippet.code).replace(/`/g, '\\`')}\`)" class="btn-icon" title="Quick Copy">
+                            <button onclick="quickCopy(\`${escapeHtml(snippet.code).replace(/`/g, '\\`').replace(/\n/g, '\\n')}\`)" class="btn-icon" title="Quick Copy">
                                 <i data-lucide="copy" style="width: 16px; height: 16px;"></i>
                             </button>
                             <a href="detail.html?id=${snippet.id}" class="btn-icon">
@@ -209,7 +209,7 @@ function showUploadPanel() {
 
 async function handleUpload() {
     const title = document.getElementById('title').value.trim();
-    const tags = document.getElementById('tags').value.trim();
+    const tags = document.getElementById('tags').value.trim().toLowerCase(); // ← FIX: normalize to lowercase
     const code = document.getElementById('code').value.trim();
 
     if (!title || !code) {
@@ -311,8 +311,11 @@ function filterByTag(tag) {
     // Filter cards
     const cards = document.querySelectorAll('.snippet-card');
     cards.forEach(card => {
-        const cardTag = card.querySelector('.tag')?.innerText.toLowerCase();
-        if (tag === 'all' || cardTag?.includes(tag)) {
+        const cardTag = card.querySelector('.tag')?.innerText.toLowerCase().trim();
+        
+        if (tag === 'all') {
+            card.classList.remove('hidden');
+        } else if (cardTag && cardTag.includes(tag.toLowerCase())) {
             card.classList.remove('hidden');
         } else {
             card.classList.add('hidden');

@@ -180,7 +180,7 @@ function copyCode() {
 
 function checkAuth() {
     const password = document.getElementById('adminPass').value;
-    const ADMIN_PASSWORD = 'dolphin2025';
+    const ADMIN_PASSWORD = 'Lumina';
     
     if (password === ADMIN_PASSWORD) {
         sessionStorage.setItem('authenticated', 'true');

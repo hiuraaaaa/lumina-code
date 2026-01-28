@@ -335,19 +335,23 @@
             background: #111827;
         }
 
-        /* --- Search Bar --- */
+        /* --- Search Bar FIX --- */
         .search-container {
             position: relative;
             margin-bottom: 1.5rem;
         }
 
-        .search-container i {
+        /* Fix untuk Lucide icon SVG */
+        .search-container svg {
             position: absolute;
             left: 1rem;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-dim);
-            font-size: 1.125rem;
+            width: 18px;
+            height: 18px;
+            pointer-events: none;
+            z-index: 10;
         }
 
         #search-input {
@@ -364,6 +368,10 @@
 
         #search-input:focus {
             border-color: #1f2937;
+        }
+
+        #search-input:focus ~ svg {
+            color: var(--primary);
         }
 
         /* --- Snippet Cards --- */

@@ -16,16 +16,26 @@ async function loadSnippets() {
         if (error) throw new Error(error);
 
         if (data && data.length > 0) {
+            // Update stats counter
+            document.getElementById('total-snippets').textContent = data.length;
+            const languages = [...new Set(data.map(s => s.tags).filter(Boolean))];
+            document.getElementById('total-languages').textContent = languages.length;
+
             container.innerHTML = data.map(snippet => `
-                <div class="snippet-card">
+                <div class="snippet-card" data-date="${new Date(snippet.created_at).getTime()}">
                     <div class="tag">${snippet.tags || 'GENERAL'}</div>
                     <h3>${snippet.title}</h3>
                     <pre><code>${escapeHtml(snippet.code.substring(0, 150))}${snippet.code.length > 150 ? '...' : ''}</code></pre>
                     <div class="snippet-meta">
                         <span class="date">${formatDate(snippet.created_at)}</span>
-                        <a href="detail.html?id=${snippet.id}" class="btn-icon">
-                            <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
-                        </a>
+                        <div class="meta-actions">
+                            <button onclick="quickCopy(\`${escapeHtml(snippet.code).replace(/`/g, '\\`')}\`)" class="btn-icon" title="Quick Copy">
+                                <i data-lucide="copy" style="width: 16px; height: 16px;"></i>
+                            </button>
+                            <a href="detail.html?id=${snippet.id}" class="btn-icon">
+                                <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -34,23 +44,24 @@ async function loadSnippets() {
                 lucide.createIcons();
             }
         } else {
+            // Empty state
             container.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
-                    <div style="width: 64px; height: 64px; background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
-                        <i data-lucide="inbox" style="width: 32px; height: 32px; color: #6b7280;"></i>
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <span class="material-icons" style="font-size: 40px; color: #6b7280;">code</span>
                     </div>
-                    <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #111827; text-transform: uppercase; letter-spacing: -0.5px;">No Snippets Found</h3>
-                    <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 1.5rem;">Start by uploading your first code snippet.</p>
-                    <a href="upload.html" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #1f2937; color: white; padding: 0.75rem 1.5rem; text-decoration: none; font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; transition: background 0.3s;">
-                        <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
-                        Add Snippet
+                    <h3>No Snippets Yet</h3>
+                    <p>Start building your code library by adding your first snippet. Quick, organized, and always accessible.</p>
+                    <a href="upload.html" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #1f2937; color: white; padding: 0.875rem 2rem; text-decoration: none; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; transition: background 0.3s;">
+                        <span class="material-icons" style="font-size: 16px;">add</span>
+                        Create First Snippet
                     </a>
                 </div>
             `;
             
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
+            // Reset stats
+            document.getElementById('total-snippets').textContent = '0';
+            document.getElementById('total-languages').textContent = '0';
         }
     } catch (err) {
         container.innerHTML = `
@@ -284,6 +295,47 @@ function filterSnippets() {
         } else {
             card.classList.add('hidden');
         }
+    });
+}
+
+function filterByTag(tag) {
+    // Update active button
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Clear search
+    document.getElementById('search-input').value = '';
+    
+    // Filter cards
+    const cards = document.querySelectorAll('.snippet-card');
+    cards.forEach(card => {
+        const cardTag = card.querySelector('.tag')?.innerText.toLowerCase();
+        if (tag === 'all' || cardTag?.includes(tag)) {
+            card.classList.remove('hidden');
+        } else {
+            card.classList.add('hidden');
+        }
+    });
+}
+
+function quickCopy(code) {
+    navigator.clipboard.writeText(code).then(() => {
+        // Visual feedback
+        const btn = event.target.closest('.btn-icon');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<span class="material-icons" style="font-size: 16px;">check</span>';
+        
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }, 1500);
+    }).catch(err => {
+        alert('Failed to copy code');
+        console.error('Copy error:', err);
     });
 }
 

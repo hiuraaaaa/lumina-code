@@ -1,78 +1,268 @@
-// ==========================================
-// KONFIGURASI SUPABASE
-// ==========================================
-const SB_URL = "https://sjqawvdabdliehzxqlbz.supabase.co"; 
-const SB_KEY = "sb_publishable__fhxF1Y__FsdwpsYDZJ0Qg_qyylrLzt"; 
-const _supabase = supabase.createClient(SB_URL, SB_KEY);
+const SUPABASE_URL = 'https://sjqawvdabdliehzxqlbz.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable__fhxF1Y__FsdwpsYDZJ0Qg_qyylrLzt';
 
-// ==========================================
-// SISTEM AUTH (ADMIN)
-// ==========================================
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ============================================
+// DASHBOARD (index.html)
+// ============================================
+
+async function loadSnippets() {
+    const container = document.getElementById('snippet-list');
+    
+    try {
+        const { data, error } = await _supabase
+            .from('snippets')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+            container.innerHTML = data.map(snippet => `
+                <div class="snippet-card">
+                    <div class="tag">${snippet.tags || 'GENERAL'}</div>
+                    <h3>${snippet.title}</h3>
+                    <pre><code>${escapeHtml(snippet.code.substring(0, 150))}${snippet.code.length > 150 ? '...' : ''}</code></pre>
+                    <div class="snippet-meta">
+                        <span class="date">${formatDate(snippet.created_at)}</span>
+                        <a href="detail.html?id=${snippet.id}" class="btn-icon">
+                            <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Re-initialize Lucide icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        } else {
+            container.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
+                    <div style="width: 64px; height: 64px; background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                        <i data-lucide="inbox" style="width: 32px; height: 32px; color: #6b7280;"></i>
+                    </div>
+                    <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #111827; text-transform: uppercase; letter-spacing: -0.5px;">No Snippets Found</h3>
+                    <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 1.5rem;">Start by uploading your first code snippet.</p>
+                    <a href="upload.html" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #1f2937; color: white; padding: 0.75rem 1.5rem; text-decoration: none; font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; transition: background 0.3s;">
+                        <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                        Add Snippet
+                    </a>
+                </div>
+            `;
+            
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+    } catch (err) {
+        container.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
+                <div style="width: 64px; height: 64px; background: #fef2f2; border: 2px solid #fecaca; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                    <i data-lucide="alert-circle" style="width: 32px; height: 32px; color: #ef4444;"></i>
+                </div>
+                <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #111827; text-transform: uppercase; letter-spacing: -0.5px;">Connection Error</h3>
+                <p style="color: #6b7280; font-size: 0.875rem;">Failed to load snippets. Please check your connection.</p>
+            </div>
+        `;
+        
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+        
+        console.error('Error loading snippets:', err);
+    }
+}
+
+// ============================================
+// DETAIL PAGE (detail.html)
+// ============================================
+
+async function loadDetail() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    const contentDiv = document.getElementById('detail-content');
+
+    if (!id) {
+        contentDiv.innerHTML = `
+            <div style="text-align:center; padding: 60px 20px;">
+                <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: -0.5px;">404</h2>
+                <p style="color: #6b7280; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em;">ID NOT FOUND</p>
+            </div>
+        `;
+        return;
+    }
+
+    try {
+        const { data, error } = await _supabase
+            .from('snippets')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+
+        if (data) {
+            const fileName = data.title.toLowerCase().replace(/\s+/g, '-');
+            const extension = data.tags ? data.tags.toLowerCase().split(',')[0].trim() : 'js';
+            
+            contentDiv.innerHTML = `
+                <div class="detail-header">
+                    <h1>code/${fileName}.${extension}</h1>
+                    <div class="meta-info">
+                        <span>
+                            <i data-lucide="tag" style="width:14px;"></i>
+                            ${data.tags || 'General'}
+                        </span>
+                        <span>
+                            <i data-lucide="calendar" style="width:14px;"></i>
+                            ${formatDate(data.created_at)}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="code-window">
+                    <div class="code-toolbar">
+                        <div class="window-dots">
+                            <div class="dot red"></div>
+                            <div class="dot yellow"></div>
+                            <div class="dot green"></div>
+                        </div>
+                        <button onclick="copyCode()" class="btn-action">
+                            <i data-lucide="copy" style="width:14px"></i>
+                            Copy
+                        </button>
+                    </div>
+                    <pre class="language-javascript"><code id="codeRaw">${escapeHtml(data.code)}</code></pre>
+                </div>
+            `;
+            
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+            
+            if (typeof Prism !== 'undefined') {
+                Prism.highlightAll();
+            }
+        }
+    } catch (err) {
+        contentDiv.innerHTML = `
+            <div style="text-align:center; padding: 60px 20px;">
+                <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: -0.5px;">404</h2>
+                <p style="color: #6b7280; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em;">SNIPPET NOT FOUND</p>
+            </div>
+        `;
+        console.error('Error loading detail:', err);
+    }
+}
+
+function copyCode() {
+    const code = document.getElementById('codeRaw').innerText;
+    navigator.clipboard.writeText(code).then(() => {
+        const btn = event.target.closest('.btn-action');
+        const originalHTML = btn.innerHTML;
+        
+        btn.innerHTML = '<i data-lucide="check" style="width:14px"></i> Copied';
+        
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+        
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }, 2000);
+    }).catch(err => {
+        alert('Failed to copy code');
+        console.error('Copy error:', err);
+    });
+}
+
+// ============================================
+// UPLOAD PAGE (upload.html)
+// ============================================
+
 function checkAuth() {
-    const pass = document.getElementById('adminPass').value;
-    if (pass === "admin123") { 
-        localStorage.setItem('isLoggedIn', 'true');
-        location.reload();
+    const password = document.getElementById('adminPass').value;
+    
+    // Change this to your secure password
+    const ADMIN_PASSWORD = 'dolphin2025';
+    
+    if (password === ADMIN_PASSWORD) {
+        sessionStorage.setItem('authenticated', 'true');
+        showUploadPanel();
     } else {
-        alert("ACCESS DENIED: Password Incorrect!");
+        alert('Invalid security key');
+        document.getElementById('adminPass').value = '';
+    }
+}
+
+function showUploadPanel() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('uploadPanel').style.display = 'block';
+}
+
+async function handleUpload() {
+    const title = document.getElementById('title').value.trim();
+    const tags = document.getElementById('tags').value.trim();
+    const code = document.getElementById('code').value.trim();
+
+    if (!title || !code) {
+        alert('Title and code are required');
+        return;
+    }
+
+    const btn = document.getElementById('uploadBtn');
+    const originalText = btn.textContent;
+    
+    btn.disabled = true;
+    btn.textContent = 'UPLOADING...';
+
+    try {
+        const { data, error } = await _supabase
+            .from('snippets')
+            .insert([
+                {
+                    title: title,
+                    tags: tags || null,
+                    code: code
+                }
+            ]);
+
+        if (error) throw error;
+
+        alert('✓ Snippet uploaded successfully!');
+        
+        // Clear form
+        document.getElementById('title').value = '';
+        document.getElementById('tags').value = '';
+        document.getElementById('code').value = '';
+        
+        // Optional: redirect to dashboard
+        // window.location.href = 'index.html';
+        
+    } catch (error) {
+        alert('Upload failed: ' + error.message);
+        console.error('Upload error:', error);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
     }
 }
 
 function logout() {
-    localStorage.removeItem('isLoggedIn');
-    location.reload();
+    sessionStorage.removeItem('authenticated');
+    document.getElementById('uploadPanel').style.display = 'none';
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('adminPass').value = '';
 }
 
-// ==========================================
-// FUNGSI LOAD DATA (HOME)
-// ==========================================
-async function loadSnippets() {
-    const listDiv = document.getElementById('snippet-list');
-    if (!listDiv) return; 
-
-    const { data, error } = await _supabase
-        .from('snippets')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        console.error(error);
-        listDiv.innerHTML = `<p style="color:#ff4d4d; text-align:center; grid-column: 1/-1;">System Error: Failed to fetch database.</p>`;
-        return;
-    }
-
-    if (data.length === 0) {
-        listDiv.innerHTML = `<p style="color:#555; text-align:center; grid-column: 1/-1; margin-top:50px;">Vault is empty. No snippets found.</p>`;
-        return;
-    }
-
-    // Merender kartu dengan struktur: Title -> Tags -> Preview Code
-    listDiv.innerHTML = data.map(item => {
-        // Preview kode dipersempit (45 karakter) agar ringan
-        const codePreview = item.code.length > 45 ? item.code.substring(0, 45) + '...' : item.code;
-        
-        return `
-            <div class="snippet-card">
-                <h3 style="margin-bottom: 6px; font-size: 0.95rem;">${item.title}</h3>
-                
-                <div class="tags" style="margin-bottom: 12px;">
-                    ${item.tags ? item.tags.split(',').map(t => `<span class="tag">${t.trim()}</span>`).join('') : '<span class="tag">CODE</span>'}
-                </div>
-
-                <pre><code>${escapeHtml(codePreview)}</code></pre>
-                
-                <div class="snippet-meta">
-                    <span class="date">${new Date(item.created_at).toLocaleDateString()}</span>
-                    <a href="detail.html?id=${item.id}" class="btn-icon">
-                        <i data-lucide="arrow-right" style="width:16px; height:16px;"></i>
-                    </a>
-                </div>
-            </div>
-        `;
-    }).join('');
-    
-    lucide.createIcons();
-}
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
 
 function escapeHtml(text) {
     const div = document.createElement('div');
@@ -80,52 +270,62 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// ==========================================
-// FUNGSI UPLOAD DATA (ADMIN)
-// ==========================================
-async function handleUpload() {
-    const title = document.getElementById('title').value;
-    const tags = document.getElementById('tags').value;
-    const code = document.getElementById('code').value;
-
-    if (!title || !code) {
-        return alert("Error: Title and Code are mandatory fields!");
-    }
-
-    const btn = document.querySelector('.btn-primary');
-    const originalText = btn.innerText;
-    btn.innerText = "UPLOADING...";
-    btn.disabled = true;
-
-    const { error } = await _supabase
-        .from('snippets')
-        .insert([{ title, tags, code }]);
-
-    if (error) {
-        alert("Upload Failed: " + error.message);
-        btn.innerText = originalText;
-        btn.disabled = false;
-    } else {
-        alert("SUCCESS: Snippet published to vault.");
-        window.location.href = 'index.html';
-    }
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const options = { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    };
+    return date.toLocaleDateString('en-US', options).toUpperCase();
 }
 
-// ==========================================
-// INISIALISASI HALAMAN
-// ==========================================
-window.onload = function() {
-    const isLogged = localStorage.getItem('isLoggedIn');
-    const loginForm = document.getElementById('loginForm');
-    const uploadPanel = document.getElementById('uploadPanel');
+function filterSnippets() {
+    const query = document.getElementById('search-input').value.toLowerCase();
+    const cards = document.querySelectorAll('.snippet-card');
     
-    if (isLogged === 'true') {
-        if (loginForm) loginForm.style.display = 'none';
-        if (uploadPanel) uploadPanel.style.display = 'block';
-    } else {
-        if (loginForm) loginForm.style.display = 'block';
-        if (uploadPanel) uploadPanel.style.display = 'none';
-    }
+    cards.forEach(card => {
+        const title = card.querySelector('h3').innerText.toLowerCase();
+        const tag = card.querySelector('.tag') ? card.querySelector('.tag').innerText.toLowerCase() : "";
+        
+        if (title.includes(query) || tag.includes(query)) {
+            card.classList.remove('hidden');
+        } else {
+            card.classList.add('hidden');
+        }
+    });
+}
 
-    loadSnippets();
-};
+// ============================================
+// AUTO-LOAD FUNCTIONS
+// ============================================
+
+// Auto-load snippets on dashboard
+if (document.getElementById('snippet-list')) {
+    window.addEventListener('load', loadSnippets);
+}
+
+// Auto-load detail on detail page
+if (document.getElementById('detail-content')) {
+    window.addEventListener('load', loadDetail);
+}
+
+// Check auth on upload page
+if (document.getElementById('uploadPanel')) {
+    window.addEventListener('load', function() {
+        const isAuthenticated = sessionStorage.getItem('authenticated');
+        if (isAuthenticated === 'true') {
+            showUploadPanel();
+        }
+    });
+    
+    // Enter key support for login
+    const adminPassInput = document.getElementById('adminPass');
+    if (adminPassInput) {
+        adminPassInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkAuth();
+            }
+        });
+    }
+}

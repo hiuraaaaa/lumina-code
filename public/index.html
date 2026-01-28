@@ -335,49 +335,13 @@
             background: #111827;
         }
 
-        /* --- Stats Counter --- */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: white;
-            border: 2px solid #e5e7eb;
-            padding: 1.25rem;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            border-color: #1f2937;
-            transform: translateY(-2px);
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #1f2937;
-            line-height: 1;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            font-size: 0.625rem;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-weight: 700;
-        }
-
         /* --- Search Bar FIX --- */
         .search-container {
             position: relative;
             margin-bottom: 1.5rem;
         }
 
+        /* Fix untuk Lucide icon SVG */
         .search-container svg {
             position: absolute;
             left: 1rem;
@@ -408,55 +372,6 @@
 
         #search-input:focus ~ svg {
             color: var(--primary);
-        }
-
-        /* --- Filter Buttons --- */
-        .filter-container {
-            display: flex;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .filter-btn {
-            padding: 0.5rem 1rem;
-            background: white;
-            border: 2px solid #e5e7eb;
-            color: #6b7280;
-            font-size: 0.6875rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-family: var(--font-main);
-        }
-
-        .filter-btn:hover,
-        .filter-btn.active {
-            border-color: #1f2937;
-            background: #1f2937;
-            color: white;
-        }
-
-        /* --- Section Header --- */
-        .section-header {
-            font-size: 0.875rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #6b7280;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .section-header::before {
-            content: '';
-            width: 3px;
-            height: 20px;
-            background: #1f2937;
         }
 
         /* --- Snippet Cards --- */
@@ -536,11 +451,6 @@
             letter-spacing: 0.05em;
         }
 
-        .meta-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
         .btn-icon {
             background: white;
             border: 2px solid #e5e7eb;
@@ -551,7 +461,6 @@
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
-            text-decoration: none;
         }
 
         .btn-icon:hover {
@@ -559,98 +468,14 @@
             background: #f9fafb;
         }
 
-        /* --- Empty State --- */
-        .empty-state {
-            text-align: center;
-            padding: 80px 20px;
-            grid-column: 1 / -1;
-        }
-
-        .empty-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .empty-state h3 {
-            font-size: 1.5rem;
-            font-weight: 800;
-            margin-bottom: 0.75rem;
-            color: #111827;
-            text-transform: uppercase;
-            letter-spacing: -0.5px;
-        }
-
-        .empty-state p {
-            color: #6b7280;
-            font-size: 0.875rem;
-            margin-bottom: 2rem;
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
-            line-height: 1.6;
-        }
-
-        /* --- Footer --- */
-        .footer {
-            margin-top: 4rem;
-            padding-top: 2rem;
-            border-top: 2px solid #e5e7eb;
-            text-align: center;
-        }
-
-        .footer-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .footer-text {
-            font-size: 0.625rem;
-            color: #6b7280;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-
-        .footer-links {
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .footer-link {
-            color: #6b7280;
-            text-decoration: none;
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: color 0.3s;
-        }
-
-        .footer-link:hover {
-            color: #1f2937;
-        }
-
         .skeleton {
             height: 200px;
-            background: linear-gradient(
-                90deg,
-                #f3f4f6 0%,
-                #e5e7eb 50%,
-                #f3f4f6 100%
-            );
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
+            background: #f3f4f6;
+            animation: pulse 1.5s infinite;
         }
 
-        @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
+        @keyframes pulse {
+            50% { opacity: 0.5; }
         }
 
         @media (max-width: 768px) {
@@ -672,15 +497,6 @@
 
             #snippet-list {
                 grid-template-columns: 1fr;
-            }
-
-            .filter-container {
-                gap: 0.5rem;
-            }
-
-            .filter-btn {
-                font-size: 0.625rem;
-                padding: 0.4rem 0.8rem;
             }
         }
     </style>
@@ -756,56 +572,15 @@
             </a>
         </div>
 
-        <!-- Stats Counter -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number" id="total-snippets">0</div>
-                <div class="stat-label">Total Snippets</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="total-languages">0</div>
-                <div class="stat-label">Languages</div>
-            </div>
-        </div>
-        <!-- Filter Buttons -->
-        <div class="filter-container">
-            <button onclick="filterByTag('all')" class="filter-btn active" data-filter="all">All</button>
-            <button onclick="filterByTag('javascript')" class="filter-btn" data-filter="javascript">JavaScript</button>
-            <button onclick="filterByTag('python')" class="filter-btn" data-filter="python">Python</button>
-            <button onclick="filterByTag('react')" class="filter-btn" data-filter="react">React</button>
-            <button onclick="filterByTag('nodejs')" class="filter-btn" data-filter="nodejs">Node.js</button>
-        </div>
-
-        <!-- Search Bar -->
         <div class="search-container">
             <i data-lucide="search"></i>
             <input type="text" id="search-input" placeholder="Cari judul atau bahasa pemrograman..." onkeyup="filterSnippets()">
         </div>
 
-        <!-- Section Header -->
-        <div class="section-header">
-            All Snippets
-        </div>
-
-        <!-- Snippet List -->
         <div id="snippet-list">
             <div class="skeleton"></div>
             <div class="skeleton"></div>
             <div class="skeleton"></div>
-        </div>
-
-        <!-- Footer -->
-        <div class="footer">
-            <div class="footer-content">
-                <div class="footer-text">
-                    © 2025 Robin • All Rights Reserved
-                </div>
-                <div class="footer-links">
-                    <a href="#" class="footer-link">GitHub</a>
-                    <a href="#" class="footer-link">Documentation</a>
-                    <a href="#" class="footer-link">Contact</a>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -840,43 +615,6 @@
                 } else {
                     card.classList.add('hidden');
                 }
-            });
-        }
-
-        function filterByTag(tag) {
-            // Update active button
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // Clear search
-            document.getElementById('search-input').value = '';
-            
-            // Filter cards
-            const cards = document.querySelectorAll('.snippet-card');
-            cards.forEach(card => {
-                const cardTag = card.querySelector('.tag')?.innerText.toLowerCase();
-                if (tag === 'all' || cardTag?.includes(tag)) {
-                    card.classList.remove('hidden');
-                } else {
-                    card.classList.add('hidden');
-                }
-            });
-        }
-
-        function quickCopy(code) {
-            navigator.clipboard.writeText(code).then(() => {
-                // Simple feedback
-                const btn = event.target.closest('.btn-icon');
-                const originalHTML = btn.innerHTML;
-                btn.innerHTML = '<span class="material-icons" style="font-size: 16px;">check</span>';
-                setTimeout(() => {
-                    btn.innerHTML = originalHTML;
-                    lucide.createIcons();
-                }, 1500);
-            }).catch(err => {
-                alert('Failed to copy code');
             });
         }
     </script>

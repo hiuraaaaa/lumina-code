@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dolphin Vault - Secure Upload</title>
+    <title>Dolphin Vault - Upload Snippet</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Ubuntu+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" rel="stylesheet">
     
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
         :root {
-            --bg: #050505;
-            --primary: #00f3ff;
-            --secondary: #9d00ff;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --text-main: #f0f0f0;
-            --text-dim: #888895;
+            --bg: #ffffff;
+            --primary: #1f2937;
+            --secondary: #4b5563;
+            --glass: rgba(0, 0, 0, 0.02);
+            --glass-border: rgba(0, 0, 0, 0.08);
+            --text-main: #111827;
+            --text-dim: #6b7280;
             --font-main: 'Inter', sans-serif;
-            --font-code: 'Geist Mono', monospace;
-            --sidebar-w: 260px;
+            --font-code: 'Ubuntu Mono', monospace;
+            --sidebar-w: 320px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -33,90 +33,271 @@
             font-family: var(--font-main);
             overflow-x: hidden;
             min-height: 100vh;
+            padding-top: 64px;
         }
 
-        /* --- Background --- */
-        .cyber-bg {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1;
-            background: 
-                radial-gradient(circle at 5% 5%, rgba(157, 0, 255, 0.05) 0%, transparent 30%),
-                radial-gradient(circle at 95% 95%, rgba(0, 243, 255, 0.05) 0%, transparent 30%);
-        }
-
-        /* --- Top Header & Burger --- */
+        /* --- Header --- */
         .top-header {
             position: fixed;
             top: 0; left: 0; width: 100%;
-            height: 60px;
-            background: rgba(5, 5, 5, 0.8);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--glass-border);
+            height: 64px;
+            background: #1f2937;
             display: flex;
             align-items: center;
-            padding: 0 20px;
+            justify-content: space-between;
+            padding: 0 2.5rem;
             z-index: 100;
-        }
-
-        .menu-trigger {
-            background: none; border: none; color: var(--text-main);
-            cursor: pointer; display: flex; align-items: center; gap: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .brand-name {
-            font-weight: 800; letter-spacing: -1px; font-size: 1.2rem;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            font-size: 0.875rem;
+            color: white;
+            text-transform: uppercase;
         }
 
-        /* --- Sidebar --- */
+        .brand-name span {
+            color: #9ca3af;
+        }
+
+        /* Hamburger Menu */
+        .hamburger {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hamburger:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
+        }
+
+        .hamburger-inner {
+            width: 20px;
+            height: 14px;
+            position: relative;
+        }
+
+        .hamburger-inner span {
+            display: block;
+            position: absolute;
+            height: 2px;
+            width: 100%;
+            background: white;
+            border-radius: 2px;
+            opacity: 1;
+            left: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hamburger-inner span:nth-child(1) { top: 0; width: 100%; }
+        .hamburger-inner span:nth-child(2) { top: 6px; width: 75%; }
+        .hamburger-inner span:nth-child(3) { top: 12px; width: 100%; }
+
+        .hamburger.active .hamburger-inner span:nth-child(1) {
+            top: 6px;
+            transform: rotate(45deg);
+            width: 100%;
+        }
+
+        .hamburger.active .hamburger-inner span:nth-child(2) {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        .hamburger.active .hamburger-inner span:nth-child(3) {
+            top: 6px;
+            transform: rotate(-45deg);
+            width: 100%;
+        }
+
+        .hamburger.active {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        /* --- Sidebar & Overlay --- */
+        .mobile-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(3px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 39;
+        }
+
+        .mobile-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
         .sidebar {
             position: fixed;
-            top: 0; left: calc(var(--sidebar-w) * -1);
-            width: var(--sidebar-w); height: 100%;
-            background: rgba(10, 10, 10, 0.95);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid var(--glass-border);
-            z-index: 1001;
-            transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1);
-            padding: 80px 20px 20px;
+            top: 64px;
+            right: -100%;
+            width: var(--sidebar-w);
+            height: calc(100vh - 64px);
+            background: white;
+            box-shadow: -4px 0 12px rgba(0,0,0,0.15);
+            z-index: 40;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
         }
 
-        .sidebar.active { transform: translateX(var(--sidebar-w)); }
-
-        .sidebar-nav { display: flex; flex-direction: column; gap: 10px; }
-        .sidebar-nav a {
-            color: var(--text-dim); text-decoration: none; padding: 12px 15px;
-            border-radius: 10px; display: flex; align-items: center; gap: 12px;
-            font-weight: 500; transition: 0.2s;
-        }
-        .sidebar-nav a:hover, .sidebar-nav a.active {
-            color: var(--primary); background: rgba(0, 243, 255, 0.05);
+        .sidebar.active {
+            right: 0;
         }
 
-        .overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); opacity: 0; pointer-events: none;
-            z-index: 1000; transition: 0.3s;
+        .sidebar-content {
+            padding: 1.5rem;
         }
-        .overlay.active { opacity: 1; pointer-events: auto; }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f3f4f6;
+        }
+
+        .sidebar-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #1f2937 0%, #4b5563 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-title {
+            font-size: 0.875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: -0.25px;
+            color: var(--text-main);
+        }
+
+        .sidebar-subtitle {
+            font-size: 0.625rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            text-decoration: none;
+            color: var(--text-dim);
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: linear-gradient(135deg, #1f2937 0%, #4b5563 100%);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .menu-item:hover,
+        .menu-item.active {
+            background: #f9fafb;
+            color: var(--text-main);
+        }
+
+        .menu-item:hover::before,
+        .menu-item.active::before {
+            transform: scaleY(1);
+        }
+
+        .menu-item.active {
+            background: linear-gradient(to right, #1f2937, #111827);
+            color: white;
+            font-weight: 700;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .menu-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(31, 41, 55, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-item.active .menu-icon {
+            background: rgba(255, 255, 255, 0.2);
+        }
 
         /* --- Main Form Container --- */
         .container {
             max-width: 650px;
-            margin: 100px auto 50px;
-            padding: 0 24px;
+            margin: 2.5rem auto 3rem;
+            padding: 0 2.5rem;
         }
 
-        .glass-panel {
-            background: var(--glass);
-            backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 35px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        .form-panel {
+            background: white;
+            border: 2px solid #e5e7eb;
+            padding: 2.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            position: relative;
             animation: panelFade 0.5s ease-out;
+        }
+
+        .form-panel::before,
+        .form-panel::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #1f2937;
+            border-radius: 50%;
+        }
+
+        .form-panel::before {
+            top: -3px;
+            left: -3px;
+        }
+
+        .form-panel::after {
+            top: -3px;
+            right: -3px;
         }
 
         @keyframes panelFade {
@@ -124,109 +305,222 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-icon {
+            width: 48px;
+            height: 48px;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
         h2 {
-            font-size: 1.6rem; font-weight: 800; letter-spacing: -0.04em;
-            margin-bottom: 25px; text-align: center; color: var(--text-main);
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+            text-transform: uppercase;
         }
 
         /* --- Form Elements --- */
-        .input-group { margin-bottom: 20px; }
+        .input-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
         
         input, textarea {
             width: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--glass-border);
-            border-radius: 10px;
-            padding: 14px;
-            color: white;
+            background: white;
+            border: 2px solid #e5e7eb;
+            padding: 0.875rem;
+            color: var(--text-main);
             font-family: var(--font-main);
+            font-size: 0.875rem;
             outline: none;
             transition: 0.3s;
         }
 
-        textarea { font-family: var(--font-code); font-size: 13px; line-height: 1.6; }
+        textarea {
+            font-family: var(--font-code);
+            font-size: 13px;
+            line-height: 1.6;
+            resize: vertical;
+        }
 
         input:focus, textarea:focus {
-            border-color: var(--primary);
-            background: rgba(0, 243, 255, 0.02);
+            border-color: #1f2937;
+            background: #fafafa;
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: #9ca3af;
         }
 
         .btn-primary {
             width: 100%;
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            color: #000; border: none; padding: 15px;
-            border-radius: 10px; font-weight: 800;
-            text-transform: uppercase; letter-spacing: 0.05em;
-            cursor: pointer; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.6875rem;
+            cursor: pointer;
+            transition: 0.3s;
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(0, 243, 255, 0.3);
+            background: #111827;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .logout-link {
-            display: block; text-align: center; margin-top: 20px;
-            color: #ff4d4d; text-decoration: none; font-size: 13px;
-            font-weight: 600; opacity: 0.6; transition: 0.3s;
+            display: block;
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #ef4444;
+            text-decoration: none;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.7;
+            transition: 0.3s;
         }
-        .logout-link:hover { opacity: 1; }
 
-        @media (max-width: 480px) {
-            .container { margin-top: 80px; padding: 0 16px; }
-            .glass-panel { padding: 25px; }
+        .logout-link:hover {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .top-header {
+                padding: 0 1rem;
+            }
+
+            .form-panel {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="cyber-bg"></div>
-    
     <header class="top-header">
-        <button class="menu-trigger" onclick="toggleSidebar()">
-            <i data-lucide="menu"></i>
-            <span class="brand-name">DOLPHIN VAULT</span>
-        </button>
+        <div class="brand-name">
+            DOLPHIN <span>VAULT</span>
+        </div>
+
+        <div class="hamburger" id="hamburger">
+            <div class="hamburger-inner">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
     </header>
 
-    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+    <div class="mobile-overlay" id="mobile-overlay"></div>
+
     <aside class="sidebar" id="sidebar">
-        <nav class="sidebar-nav">
-            <a href="index.html"><i data-lucide="home"></i> Dashboard</a>
-            <a href="upload.html" class="active"><i data-lucide="plus-circle"></i> Upload Snippet</a>
-            <a href="#"><i data-lucide="settings"></i> Settings</a>
-        </nav>
+        <div class="sidebar-content">
+            <div class="sidebar-header">
+                <div class="sidebar-icon">
+                    <span class="material-icons" style="color: white; font-size: 18px;">apps</span>
+                </div>
+                <div>
+                    <div class="sidebar-title">Navigation</div>
+                    <div class="sidebar-subtitle">Dolphin Vault</div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="index.html" class="menu-item">
+                    <div class="menu-icon">
+                        <span class="material-icons" style="font-size: 14px;">home</span>
+                    </div>
+                    <span>Dashboard</span>
+                </a>
+                <a href="upload.html" class="menu-item active">
+                    <div class="menu-icon">
+                        <span class="material-icons" style="font-size: 14px;">add_circle</span>
+                    </div>
+                    <span>Upload Snippet</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <div class="menu-icon">
+                        <span class="material-icons" style="font-size: 14px;">settings</span>
+                    </div>
+                    <span>Settings</span>
+                </a>
+            </nav>
+        </div>
     </aside>
 
     <div class="container">
-        <div id="loginForm" class="glass-panel" style="max-width: 400px; margin: 0 auto;">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <i data-lucide="lock" style="width: 40px; height: 40px; color: var(--primary);"></i>
+        <!-- Login Form -->
+        <div id="loginForm" class="form-panel" style="max-width: 420px; margin: 0 auto;">
+            <div class="form-header">
+                <div class="form-icon">
+                    <i data-lucide="lock" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                </div>
+                <h2>Admin Access</h2>
             </div>
-            <h2>Admin Access</h2>
             <div class="input-group">
+                <label class="input-label">Security Key</label>
                 <input type="password" id="adminPass" placeholder="Enter security key...">
             </div>
             <button onclick="checkAuth()" class="btn-primary">Authenticate</button>
         </div>
 
-        <div id="uploadPanel" class="glass-panel" style="display: none;">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <i data-lucide="database" style="width: 40px; height: 40px; color: var(--secondary);"></i>
-            </div>
-            <h2>New Entry</h2>
-            <div class="input-group">
-                <input type="text" id="title" placeholder="Entry Title (e.g. Scraper API)">
-            </div>
-            <div class="input-group">
-                <input type="text" id="tags" placeholder="Tags (e.g. nodejs, automation)">
+        <!-- Upload Panel -->
+        <div id="uploadPanel" class="form-panel" style="display: none;">
+            <div class="form-header">
+                <div class="form-icon">
+                    <i data-lucide="database" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                </div>
+                <h2>New Entry</h2>
             </div>
             <div class="input-group">
-                <textarea id="code" placeholder="// Paste your source code here..." rows="12"></textarea>
+                <label class="input-label">Entry Title</label>
+                <input type="text" id="title" placeholder="e.g. Scraper API">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Tags</label>
+                <input type="text" id="tags" placeholder="e.g. nodejs, automation">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Source Code</label>
+                <textarea id="code" placeholder="// Paste your source code here..." rows="14"></textarea>
             </div>
             
-            <button onclick="handleUpload()" class="btn-primary">Push to Database</button>
+            <button onclick="handleUpload()" class="btn-primary" id="uploadBtn">Push to Database</button>
             
-            <a href="#" onclick="logout()" class="logout-link">
+            <a href="#" onclick="logout(); return false;" class="logout-link">
                 <i data-lucide="power" style="width: 12px; height: 12px; vertical-align: middle;"></i> 
                 Terminate Session
             </a>
@@ -238,8 +532,39 @@
         lucide.createIcons();
 
         function toggleSidebar() {
+            document.getElementById('hamburger').classList.toggle('active');
             document.getElementById('sidebar').classList.toggle('active');
-            document.getElementById('overlay').classList.toggle('active');
+            document.getElementById('mobile-overlay').classList.toggle('active');
+        }
+
+        document.getElementById('hamburger').addEventListener('click', toggleSidebar);
+        document.getElementById('mobile-overlay').addEventListener('click', toggleSidebar);
+
+        // Close on ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('sidebar').classList.contains('active')) {
+                toggleSidebar();
+            }
+        });
+
+        // Check auth on page load
+        window.addEventListener('load', function() {
+            const isAuthenticated = sessionStorage.getItem('authenticated');
+            if (isAuthenticated === 'true') {
+                showUploadPanel();
+            }
+        });
+
+        // Enter key support for login
+        document.getElementById('adminPass').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkAuth();
+            }
+        });
+
+        function showUploadPanel() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('uploadPanel').style.display = 'block';
         }
     </script>
 </body>

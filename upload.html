@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dolphin Vault - Secure Upload</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --bg: #050505;
+            --primary: #00f3ff;
+            --secondary: #9d00ff;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f0f0f0;
+            --text-dim: #888895;
+            --font-main: 'Inter', sans-serif;
+            --font-code: 'Geist Mono', monospace;
+            --sidebar-w: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* --- Background --- */
+        .cyber-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 5% 5%, rgba(157, 0, 255, 0.05) 0%, transparent 30%),
+                radial-gradient(circle at 95% 95%, rgba(0, 243, 255, 0.05) 0%, transparent 30%);
+        }
+
+        /* --- Top Header & Burger --- */
+        .top-header {
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            height: 60px;
+            background: rgba(5, 5, 5, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 100;
+        }
+
+        .menu-trigger {
+            background: none; border: none; color: var(--text-main);
+            cursor: pointer; display: flex; align-items: center; gap: 15px;
+        }
+
+        .brand-name {
+            font-weight: 800; letter-spacing: -1px; font-size: 1.2rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            position: fixed;
+            top: 0; left: calc(var(--sidebar-w) * -1);
+            width: var(--sidebar-w); height: 100%;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            z-index: 1001;
+            transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+            padding: 80px 20px 20px;
+        }
+
+        .sidebar.active { transform: translateX(var(--sidebar-w)); }
+
+        .sidebar-nav { display: flex; flex-direction: column; gap: 10px; }
+        .sidebar-nav a {
+            color: var(--text-dim); text-decoration: none; padding: 12px 15px;
+            border-radius: 10px; display: flex; align-items: center; gap: 12px;
+            font-weight: 500; transition: 0.2s;
+        }
+        .sidebar-nav a:hover, .sidebar-nav a.active {
+            color: var(--primary); background: rgba(0, 243, 255, 0.05);
+        }
+
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); opacity: 0; pointer-events: none;
+            z-index: 1000; transition: 0.3s;
+        }
+        .overlay.active { opacity: 1; pointer-events: auto; }
+
+        /* --- Main Form Container --- */
+        .container {
+            max-width: 650px;
+            margin: 100px auto 50px;
+            padding: 0 24px;
+        }
+
+        .glass-panel {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            animation: panelFade 0.5s ease-out;
+        }
+
+        @keyframes panelFade {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            font-size: 1.6rem; font-weight: 800; letter-spacing: -0.04em;
+            margin-bottom: 25px; text-align: center; color: var(--text-main);
+        }
+
+        /* --- Form Elements --- */
+        .input-group { margin-bottom: 20px; }
+        
+        input, textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 14px;
+            color: white;
+            font-family: var(--font-main);
+            outline: none;
+            transition: 0.3s;
+        }
+
+        textarea { font-family: var(--font-code); font-size: 13px; line-height: 1.6; }
+
+        input:focus, textarea:focus {
+            border-color: var(--primary);
+            background: rgba(0, 243, 255, 0.02);
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: #000; border: none; padding: 15px;
+            border-radius: 10px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.05em;
+            cursor: pointer; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 243, 255, 0.3);
+        }
+
+        .logout-link {
+            display: block; text-align: center; margin-top: 20px;
+            color: #ff4d4d; text-decoration: none; font-size: 13px;
+            font-weight: 600; opacity: 0.6; transition: 0.3s;
+        }
+        .logout-link:hover { opacity: 1; }
+
+        @media (max-width: 480px) {
+            .container { margin-top: 80px; padding: 0 16px; }
+            .glass-panel { padding: 25px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="cyber-bg"></div>
+    
+    <header class="top-header">
+        <button class="menu-trigger" onclick="toggleSidebar()">
+            <i data-lucide="menu"></i>
+            <span class="brand-name">DOLPHIN VAULT</span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+    <aside class="sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+            <a href="index.html"><i data-lucide="home"></i> Dashboard</a>
+            <a href="upload.html" class="active"><i data-lucide="plus-circle"></i> Upload Snippet</a>
+            <a href="#"><i data-lucide="settings"></i> Settings</a>
+        </nav>
+    </aside>
+
+    <div class="container">
+        <div id="loginForm" class="glass-panel" style="max-width: 400px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <i data-lucide="lock" style="width: 40px; height: 40px; color: var(--primary);"></i>
+            </div>
+            <h2>Admin Access</h2>
+            <div class="input-group">
+                <input type="password" id="adminPass" placeholder="Enter security key...">
+            </div>
+            <button onclick="checkAuth()" class="btn-primary">Authenticate</button>
+        </div>
+
+        <div id="uploadPanel" class="glass-panel" style="display: none;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <i data-lucide="database" style="width: 40px; height: 40px; color: var(--secondary);"></i>
+            </div>
+            <h2>New Entry</h2>
+            <div class="input-group">
+                <input type="text" id="title" placeholder="Entry Title (e.g. Scraper API)">
+            </div>
+            <div class="input-group">
+                <input type="text" id="tags" placeholder="Tags (e.g. nodejs, automation)">
+            </div>
+            <div class="input-group">
+                <textarea id="code" placeholder="// Paste your source code here..." rows="12"></textarea>
+            </div>
+            
+            <button onclick="handleUpload()" class="btn-primary">Push to Database</button>
+            
+            <a href="#" onclick="logout()" class="logout-link">
+                <i data-lucide="power" style="width: 12px; height: 12px; vertical-align: middle;"></i> 
+                Terminate Session
+            </a>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        lucide.createIcons();
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
